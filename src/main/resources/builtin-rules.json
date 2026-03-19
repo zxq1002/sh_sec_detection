@@ -1,0 +1,167 @@
+{
+  "version": "1.0",
+  "rules": [
+    {
+      "id": "builtin-rm-rf-root",
+      "name": "rm -rf root",
+      "type": "BLACKLIST",
+      "pattern": "rm\\s+.*-rf.*\\s+/",
+      "riskLevel": "DANGER",
+      "description": "递归删除根目录",
+      "enabled": true
+    },
+    {
+      "id": "builtin-mkfs",
+      "name": "mkfs",
+      "type": "BLACKLIST",
+      "pattern": "mkfs\\..*",
+      "riskLevel": "DANGER",
+      "description": "格式化文件系统",
+      "enabled": true
+    },
+    {
+      "id": "builtin-dd",
+      "name": "dd dangerous",
+      "type": "BLACKLIST",
+      "pattern": "dd.*of=/dev/",
+      "riskLevel": "DANGER",
+      "description": "dd写入设备",
+      "enabled": true
+    },
+    {
+      "id": "builtin-reboot",
+      "name": "reboot",
+      "type": "BLACKLIST",
+      "pattern": "reboot|shutdown|init\\s+0|init\\s+6|systemctl.*poweroff|systemctl.*reboot|halt|poweroff",
+      "riskLevel": "DANGER",
+      "description": "系统重启/关机",
+      "enabled": true
+    },
+    {
+      "id": "builtin-rm-rf",
+      "name": "rm -rf",
+      "type": "BLACKLIST",
+      "pattern": "rm\\s+.*-rf",
+      "riskLevel": "RISK",
+      "description": "递归删除",
+      "enabled": true
+    },
+    {
+      "id": "builtin-cp-mv",
+      "name": "cp/mv",
+      "type": "BLACKLIST",
+      "pattern": "cp\\s+-f|mv\\s+",
+      "riskLevel": "RISK",
+      "description": "复制/移动文件",
+      "enabled": true
+    },
+    {
+      "id": "builtin-touch-mkdir",
+      "name": "touch/mkdir",
+      "type": "BLACKLIST",
+      "pattern": "touch\\s+|mkdir\\s+-p",
+      "riskLevel": "RISK",
+      "description": "创建文件/目录",
+      "enabled": true
+    },
+    {
+      "id": "builtin-sed-awk-perl",
+      "name": "sed/awk/perl in-place",
+      "type": "BLACKLIST",
+      "pattern": "sed\\s+-i|awk\\s+-i.*inplace|perl\\s+-i",
+      "riskLevel": "RISK",
+      "description": "原地修改文件",
+      "enabled": true
+    },
+    {
+      "id": "builtin-chmod",
+      "name": "chmod dangerous",
+      "type": "BLACKLIST",
+      "pattern": "chmod\\s+777|chmod\\s+-R",
+      "riskLevel": "RISK",
+      "description": "危险权限修改",
+      "enabled": true
+    },
+    {
+      "id": "builtin-chown",
+      "name": "chown/chgrp",
+      "type": "BLACKLIST",
+      "pattern": "chown\\s+-R|chgrp\\s+-R",
+      "riskLevel": "RISK",
+      "description": "递归修改所有者",
+      "enabled": true
+    },
+    {
+      "id": "builtin-kill",
+      "name": "kill -9",
+      "type": "BLACKLIST",
+      "pattern": "kill\\s+-9|pkill\\s+-9|killall\\s+-9",
+      "riskLevel": "RISK",
+      "description": "强制终止进程",
+      "enabled": true
+    },
+    {
+      "id": "builtin-ls",
+      "name": "ls",
+      "type": "WHITELIST",
+      "pattern": "^\\s*ls\\b",
+      "riskLevel": "SAFE",
+      "description": "查看目录",
+      "enabled": true
+    },
+    {
+      "id": "builtin-cat",
+      "name": "cat",
+      "type": "WHITELIST",
+      "pattern": "^\\s*cat\\b",
+      "riskLevel": "SAFE",
+      "description": "查看文件内容",
+      "enabled": true
+    },
+    {
+      "id": "builtin-echo",
+      "name": "echo/printf",
+      "type": "WHITELIST",
+      "pattern": "^\\s*echo\\b|^\\s*printf\\b",
+      "riskLevel": "SAFE",
+      "description": "输出文本",
+      "enabled": true
+    },
+    {
+      "id": "builtin-info",
+      "name": "info commands",
+      "type": "WHITELIST",
+      "pattern": "^\\s*pwd\\b|^\\s*whoami\\b|^\\s*id\\b|^\\s*date\\b|^\\s*uptime\\b",
+      "riskLevel": "SAFE",
+      "description": "系统信息查询",
+      "enabled": true
+    },
+    {
+      "id": "builtin-process-view",
+      "name": "process view",
+      "type": "WHITELIST",
+      "pattern": "^\\s*ps\\b|^\\s*top\\b",
+      "riskLevel": "SAFE",
+      "description": "进程查看",
+      "enabled": true
+    },
+    {
+      "id": "builtin-file-view",
+      "name": "file view",
+      "type": "WHITELIST",
+      "pattern": "^\\s*head\\b|^\\s*tail\\b|^\\s*less\\b|^\\s*more\\b",
+      "riskLevel": "SAFE",
+      "description": "文件内容查看",
+      "enabled": true
+    },
+    {
+      "id": "builtin-search",
+      "name": "search",
+      "type": "WHITELIST",
+      "pattern": "^\\s*grep\\b|^\\s*find\\b",
+      "riskLevel": "SAFE",
+      "description": "搜索",
+      "enabled": true
+    }
+  ]
+}
