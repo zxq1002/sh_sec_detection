@@ -44,4 +44,114 @@ class ShellDetectorTest {
         DetectionResult result = detector.detect("ls -la /tmp");
         assertTrue(result.isPassed());
     }
+
+    @Test
+    void testPipeCommandWithBlacklistShouldBeBlocked() {
+        ShellDetector detector = ShellDetector.builder()
+                .withRule(Rule.builder()
+                        .id("builtin-ps")
+                        .pattern("^\\s*ps\\b")
+                        .whitelist()
+                        .riskLevel(RiskLevel.SAFE)
+                        .build())
+                .withRule(Rule.builder()
+                        .id("builtin-rm-rf")
+                        .pattern("rm\\s+.*-rf")
+                        .blacklist()
+                        .riskLevel(RiskLevel.RISK)
+                        .build())
+                .withThreshold(RiskLevel.RISK)
+                .build();
+
+        DetectionResult result = detector.detect("ps -ef | rm -rf xxx.sh");
+        assertFalse(result.isPassed());
+    }
+
+    @Test
+    void testEchoWithWriteRedirectionShouldBeBlocked() {
+        ShellDetector detector = ShellDetector.builder()
+                .withRule(Rule.builder()
+                        .id("builtin-echo")
+                        .pattern("^\\s*echo\\b")
+                        .whitelist()
+                        .riskLevel(RiskLevel.SAFE)
+                        .build())
+                .withRule(Rule.builder()
+                        .id("builtin-file-write")
+                        .pattern("\\s*>\\s*[^\\s]|\\s*1>\\s*[^\\s]|\\s*2>\\s*[^\\s]|\\s*>>\\s*[^\\s]")
+                        .blacklist()
+                        .riskLevel(RiskLevel.RISK)
+                        .build())
+                .withThreshold(RiskLevel.RISK)
+                .build();
+
+        DetectionResult result = detector.detect("echo '123' > 123.sh");
+        assertFalse(result.isPassed());
+    }
+
+    @Test
+    void testEchoWithAppendRedirectionShouldBeBlocked() {
+        ShellDetector detector = ShellDetector.builder()
+                .withRule(Rule.builder()
+                        .id("builtin-echo")
+                        .pattern("^\\s*echo\\b")
+                        .whitelist()
+                        .riskLevel(RiskLevel.SAFE)
+                        .build())
+                .withRule(Rule.builder()
+                        .id("builtin-file-write")
+                        .pattern("\\s*>\\s*[^\\s]|\\s*1>\\s*[^\\s]|\\s*2>\\s*[^\\s]|\\s*>>\\s*[^\\s]")
+                        .blacklist()
+                        .riskLevel(RiskLevel.RISK)
+                        .build())
+                .withThreshold(RiskLevel.RISK)
+                .build();
+
+        DetectionResult result = detector.detect("echo '123' >> 123.sh");
+        assertFalse(result.isPassed());
+    }
+
+    @Test
+    void testSimpleWhitelistCommandShouldPass() {
+        ShellDetector detector = ShellDetector.builder()
+                .withRule(Rule.builder()
+                        .id("builtin-ps")
+                        .pattern("^\\s*ps\\b")
+                        .whitelist()
+                        .riskLevel(RiskLevel.SAFE)
+                        .build())
+                .withRule(Rule.builder()
+                        .id("builtin-rm-rf")
+                        .pattern("rm\\s+.*-rf")
+                        .blacklist()
+                        .riskLevel(RiskLevel.RISK)
+                        .build())
+                .withThreshold(RiskLevel.RISK)
+                .build();
+
+        DetectionResult result = detector.detect("ps -ef");
+        assertTrue(result.isPassed());
+    }
+
+    @Test
+    void testMultipleCommandsWithBlacklistShouldBeBlocked() {
+        ShellDetector detector = ShellDetector.builder()
+                .withRule(Rule.builder()
+                        .id("builtin-ls")
+                        .pattern("^\\s*ls\\b")
+                        .whitelist()
+                        .riskLevel(RiskLevel.SAFE)
+                        .build())
+                .withRule(Rule.builder()
+                        .id("builtin-rm-rf")
+                        .pattern("rm\\s+.*-rf")
+                        .blacklist()
+                        .riskLevel(RiskLevel.RISK)
+                        .build())
+                .withThreshold(RiskLevel.RISK)
+                .build();
+
+        DetectionResult result = detector.detect("ls -la; rm -rf /tmp");
+        assertFalse(result.isPassed());
+    }
 }
