@@ -101,6 +101,15 @@
       "enabled": true
     },
     {
+      "id": "builtin-file-write",
+      "name": "file write redirection",
+      "type": "BLACKLIST",
+      "pattern": "\\s*>\\s*[^\\s]|\\s*1>\\s*[^\\s]|\\s*2>\\s*[^\\s]|\\s*>>\\s*[^\\s]",
+      "riskLevel": "RISK",
+      "description": "重定向写文件",
+      "enabled": true
+    },
+    {
       "id": "builtin-ls",
       "name": "ls",
       "type": "WHITELIST",

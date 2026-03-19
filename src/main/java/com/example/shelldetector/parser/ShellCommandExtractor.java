@@ -21,7 +21,7 @@ public class ShellCommandExtractor {
             String[] parts = COMMAND_DELIMITERS.split(shellCommand);
             for (String part : parts) {
                 if (part != null) {
-                    String trimmed = removeRedirections(part.trim());
+                    String trimmed = part.trim();
                     if (!trimmed.isEmpty()) {
                         commands.add(trimmed);
                     }
@@ -31,10 +31,5 @@ public class ShellCommandExtractor {
         } catch (Exception e) {
             throw new ShellParseException("Failed to parse shell command: " + shellCommand, e);
         }
-    }
-
-    private String removeRedirections(String command) {
-        return command.replaceAll("\\s*[<>]\\s*[^\\s]+", "")
-                      .replaceAll("\\s*[12]>&?\\s*[^\\s]+", "");
     }
 }

@@ -38,6 +38,11 @@ public class RuleMatcher {
         if (entireCommand == null || rules == null) {
             return false;
         }
+        // 如果包含重定向写操作，不应该仅凭子命令白名单就通过
+        boolean hasWriteRedirection = hasWriteRedirection(entireCommand);
+        if (hasWriteRedirection) {
+            return false;
+        }
         // 只有当整条命令不包含命令分隔符时，才用子命令级白名单规则匹配
         // 或者有专门的整条命令白名单规则
         boolean hasCommandSeparators = entireCommand.contains(";") || entireCommand.contains("|") || entireCommand.contains("&");
@@ -60,12 +65,32 @@ public class RuleMatcher {
         return false;
     }
 
+    /**
+     * 检测是否包含重定向写操作
+     */
+    private boolean hasWriteRedirection(String command) {
+        if (command == null) {
+            return false;
+        }
+        return command.matches(".*\\s*>\\s*[^\\s].*") ||
+               command.matches(".*\\s*1>\\s*[^\\s].*") ||
+               command.matches(".*\\s*2>\\s*[^\\s].*") ||
+               command.matches(".*\\s*>>\\s*[^\\s].*");
+    }
+
     public boolean areAllCommandsWhitelisted(List<String> commands, List<Rule> rules) {
         if (commands == null || commands.isEmpty() || rules == null) {
             return false;
         }
         for (String cmd : commands) {
-            if (cmd == null || matchWhitelist(cmd, rules).isEmpty()) {
+            if (cmd == null) {
+                return false;
+            }
+            // 如果包含重定向写操作，不应该通过白名单
+            if (hasWriteRedirection(cmd)) {
+                return false;
+            }
+            if (matchWhitelist(cmd, rules).isEmpty()) {
                 return false;
             }
         }
