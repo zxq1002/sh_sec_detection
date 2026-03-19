@@ -10,8 +10,11 @@ public class RuleMatcher {
 
     public List<Rule> matchWhitelist(String command, List<Rule> rules) {
         List<Rule> matched = new ArrayList<>();
+        if (command == null || rules == null) {
+            return matched;
+        }
         for (Rule rule : rules) {
-            if (rule.getType() == RuleType.WHITELIST && rule.matches(command)) {
+            if (rule != null && rule.getType() == RuleType.WHITELIST && rule.matches(command)) {
                 matched.add(rule);
             }
         }
@@ -20,8 +23,11 @@ public class RuleMatcher {
 
     public List<Rule> matchBlacklist(String command, List<Rule> rules) {
         List<Rule> matched = new ArrayList<>();
+        if (command == null || rules == null) {
+            return matched;
+        }
         for (Rule rule : rules) {
-            if (rule.getType() == RuleType.BLACKLIST && rule.matches(command)) {
+            if (rule != null && rule.getType() == RuleType.BLACKLIST && rule.matches(command)) {
                 matched.add(rule);
             }
         }
@@ -29,17 +35,20 @@ public class RuleMatcher {
     }
 
     public boolean isEntireCommandWhitelisted(String entireCommand, List<Rule> rules) {
+        if (entireCommand == null || rules == null) {
+            return false;
+        }
         // 只有当整条命令不包含命令分隔符时，才用子命令级白名单规则匹配
         // 或者有专门的整条命令白名单规则
         boolean hasCommandSeparators = entireCommand.contains(";") || entireCommand.contains("|") || entireCommand.contains("&");
 
         for (Rule rule : rules) {
-            if (rule.getType() == com.example.shelldetector.model.RuleType.WHITELIST && rule.matches(entireCommand)) {
+            if (rule != null && rule.getType() == com.example.shelldetector.model.RuleType.WHITELIST && rule.matches(entireCommand)) {
                 // 如果包含命令分隔符，只有"整条命令专用"的白名单规则才生效
                 // 判断：如果规则pattern包含命令分隔符，认为是整条命令规则
                 if (hasCommandSeparators) {
                     String pattern = rule.getPattern();
-                    if (pattern.contains(";") || pattern.contains("|") || pattern.contains("&")) {
+                    if (pattern != null && (pattern.contains(";") || pattern.contains("|") || pattern.contains("&"))) {
                         return true;
                     }
                 } else {
@@ -52,11 +61,11 @@ public class RuleMatcher {
     }
 
     public boolean areAllCommandsWhitelisted(List<String> commands, List<Rule> rules) {
-        if (commands.isEmpty()) {
+        if (commands == null || commands.isEmpty() || rules == null) {
             return false;
         }
         for (String cmd : commands) {
-            if (matchWhitelist(cmd, rules).isEmpty()) {
+            if (cmd == null || matchWhitelist(cmd, rules).isEmpty()) {
                 return false;
             }
         }

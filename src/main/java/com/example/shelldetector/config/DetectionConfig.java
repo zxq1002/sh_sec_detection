@@ -16,6 +16,9 @@ public class DetectionConfig implements Serializable {
     }
 
     public void setThreshold(RiskLevel threshold) {
+        if (threshold == null) {
+            throw new IllegalArgumentException("Threshold cannot be null");
+        }
         this.threshold = threshold;
     }
 
@@ -35,6 +38,9 @@ public class DetectionConfig implements Serializable {
         private DetectionConfig config = new DetectionConfig();
 
         public Builder threshold(RiskLevel threshold) {
+            if (threshold == null) {
+                throw new IllegalArgumentException("Threshold cannot be null");
+            }
             config.threshold = threshold;
             return this;
         }

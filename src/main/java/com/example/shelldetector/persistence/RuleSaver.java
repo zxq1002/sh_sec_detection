@@ -14,6 +14,12 @@ public class RuleSaver {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static void saveToJson(List<Rule> rules, File file) {
+        if (rules == null) {
+            throw new IllegalArgumentException("Rules cannot be null");
+        }
+        if (file == null) {
+            throw new IllegalArgumentException("File cannot be null");
+        }
         try {
             Map<String, Object> data = new HashMap<>();
             data.put("version", "1.0");
@@ -25,6 +31,9 @@ public class RuleSaver {
     }
 
     public static void saveToJson(List<Rule> rules, String path) {
+        if (path == null || path.trim().isEmpty()) {
+            throw new IllegalArgumentException("Path cannot be null or empty");
+        }
         saveToJson(rules, new File(path));
     }
 }

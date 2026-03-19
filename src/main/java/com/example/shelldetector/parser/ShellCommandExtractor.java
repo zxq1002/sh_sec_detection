@@ -20,9 +20,11 @@ public class ShellCommandExtractor {
             List<String> commands = new ArrayList<>();
             String[] parts = COMMAND_DELIMITERS.split(shellCommand);
             for (String part : parts) {
-                String trimmed = removeRedirections(part.trim());
-                if (!trimmed.isEmpty()) {
-                    commands.add(trimmed);
+                if (part != null) {
+                    String trimmed = removeRedirections(part.trim());
+                    if (!trimmed.isEmpty()) {
+                        commands.add(trimmed);
+                    }
                 }
             }
             return commands;

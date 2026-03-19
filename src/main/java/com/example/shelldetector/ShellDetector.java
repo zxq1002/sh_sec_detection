@@ -34,18 +34,29 @@ public class ShellDetector {
     }
 
     public void addRule(Rule rule) {
+        if (rule == null || rule.getId() == null) {
+            throw new IllegalArgumentException("Rule and rule id cannot be null");
+        }
         rules.put(rule.getId(), rule);
     }
 
     public void removeRule(String ruleId) {
-        rules.remove(ruleId);
+        if (ruleId != null) {
+            rules.remove(ruleId);
+        }
     }
 
     public void updateRule(Rule rule) {
+        if (rule == null || rule.getId() == null) {
+            throw new IllegalArgumentException("Rule and rule id cannot be null");
+        }
         rules.put(rule.getId(), rule);
     }
 
     public Rule getRule(String ruleId) {
+        if (ruleId == null) {
+            return null;
+        }
         return rules.get(ruleId);
     }
 
@@ -54,10 +65,16 @@ public class ShellDetector {
     }
 
     public void saveRulesToJson(String path) {
+        if (path == null || path.trim().isEmpty()) {
+            throw new IllegalArgumentException("Path cannot be null or empty");
+        }
         RuleSaver.saveToJson(getRules(), path);
     }
 
     public void saveRulesToJson(File file) {
+        if (file == null) {
+            throw new IllegalArgumentException("File cannot be null");
+        }
         RuleSaver.saveToJson(getRules(), file);
     }
 
@@ -74,11 +91,17 @@ public class ShellDetector {
         private List<Rule> rules = new ArrayList<>();
 
         public Builder withConfig(DetectionConfig config) {
+            if (config == null) {
+                throw new IllegalArgumentException("Config cannot be null");
+            }
             this.config = config;
             return this;
         }
 
         public Builder withThreshold(RiskLevel threshold) {
+            if (threshold == null) {
+                throw new IllegalArgumentException("Threshold cannot be null");
+            }
             this.config = DetectionConfig.builder().threshold(threshold).build();
             return this;
         }
@@ -89,21 +112,32 @@ public class ShellDetector {
         }
 
         public Builder withRules(List<Rule> rules) {
-            this.rules.addAll(rules);
+            if (rules != null) {
+                this.rules.addAll(rules);
+            }
             return this;
         }
 
         public Builder withRule(Rule rule) {
+            if (rule == null) {
+                throw new IllegalArgumentException("Rule cannot be null");
+            }
             this.rules.add(rule);
             return this;
         }
 
         public Builder withRulesFromJson(String path) {
+            if (path == null || path.trim().isEmpty()) {
+                throw new IllegalArgumentException("Path cannot be null or empty");
+            }
             this.rules.addAll(RuleLoader.loadFromJson(path));
             return this;
         }
 
         public Builder withRulesFromJson(File file) {
+            if (file == null) {
+                throw new IllegalArgumentException("File cannot be null");
+            }
             this.rules.addAll(RuleLoader.loadFromJson(file));
             return this;
         }

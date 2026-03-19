@@ -16,6 +16,9 @@ public class RuleLoader {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static List<Rule> loadFromJson(File file) {
+        if (file == null) {
+            throw new IllegalArgumentException("File cannot be null");
+        }
         try {
             Map<String, Object> data = objectMapper.readValue(file, new TypeReference<Map<String, Object>>() {});
             return extractRules(data);
@@ -25,10 +28,16 @@ public class RuleLoader {
     }
 
     public static List<Rule> loadFromJson(String path) {
+        if (path == null || path.trim().isEmpty()) {
+            throw new IllegalArgumentException("Path cannot be null or empty");
+        }
         return loadFromJson(new File(path));
     }
 
     public static List<Rule> loadFromJson(InputStream is) {
+        if (is == null) {
+            throw new IllegalArgumentException("InputStream cannot be null");
+        }
         try {
             Map<String, Object> data = objectMapper.readValue(is, new TypeReference<Map<String, Object>>() {});
             return extractRules(data);

@@ -9,8 +9,11 @@ public class RiskEvaluator {
 
     public RiskLevel evaluateHighestRisk(List<Rule> matchedRules) {
         RiskLevel highest = RiskLevel.SAFE;
+        if (matchedRules == null) {
+            return highest;
+        }
         for (Rule rule : matchedRules) {
-            if (rule.getRiskLevel().isHigherOrEqualTo(highest)) {
+            if (rule != null && rule.getRiskLevel() != null && rule.getRiskLevel().isHigherOrEqualTo(highest)) {
                 highest = rule.getRiskLevel();
             }
         }
@@ -18,6 +21,9 @@ public class RiskEvaluator {
     }
 
     public boolean shouldBlock(RiskLevel riskLevel, RiskLevel threshold) {
+        if (riskLevel == null || threshold == null) {
+            return false;
+        }
         return riskLevel.isHigherOrEqualTo(threshold);
     }
 }

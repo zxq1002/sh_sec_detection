@@ -122,6 +122,12 @@ public class Rule implements Serializable {
         }
 
         public Rule build() {
+            if (id == null || id.trim().isEmpty()) {
+                throw new IllegalArgumentException("Rule id cannot be null or empty");
+            }
+            if (pattern == null || pattern.trim().isEmpty()) {
+                throw new IllegalArgumentException("Rule pattern cannot be null or empty");
+            }
             Rule rule = new Rule();
             rule.id = this.id;
             rule.name = this.name;

@@ -26,6 +26,14 @@ public class DetectionEngine {
     public DetectionResult detect(String entireCommand, List<Rule> rules) {
         DetectionResult.Builder resultBuilder = DetectionResult.builder();
 
+        if (entireCommand == null) {
+            return resultBuilder.passed(true).build();
+        }
+
+        if (rules == null) {
+            rules = new ArrayList<>();
+        }
+
         try {
             List<String> commands = commandExtractor.extractCommands(entireCommand);
 
