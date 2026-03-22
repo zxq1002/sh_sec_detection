@@ -14,21 +14,10 @@ import java.util.List;
  *     <li>单引号和双引号内的分隔符（不会被当作分隔符）</li>
  *     <li>转义字符（转义后的分隔符不会被当作分隔符）</li>
  *     <li>保留重定向操作符（>, >>, < 等）在子命令中</li>
+ *     <li>2>&1 中的 & 不会被当作分隔符</li>
  * </ul>
  * 确保后续检测可以看到完整的命令上下文。
  * </p>
- *
- * <p>示例：</p>
- * <pre>{@code
- * "ps -ef | rm -rf xxx.sh"
- *   → ["ps -ef", "rm -rf xxx.sh"]
- *
- * "echo 'Hello; rm -rf /'"
- *   → ["echo 'Hello; rm -rf /'"]  (引号内的分号不分割)
- *
- * "echo \\; rm -rf /"
- *   → ["echo \\; rm -rf /"]  (转义的分号不分割)
- * }</pre>
  */
 public class ShellCommandExtractor {
 
@@ -91,7 +80,6 @@ public class ShellCommandExtractor {
                     // 特殊处理：& 在 > 后面时（如 2>&1），不是命令分隔符
                     if (c == '&' && i > 0) {
                         char prevChar = shellCommand.charAt(i - 1);
-                        // 如果前一个字符是 >，则这是重定向的一部分（如 2>&1），不是分隔符
                         if (prevChar == '>') {
                             currentCommand.append(c);
                             continue;
