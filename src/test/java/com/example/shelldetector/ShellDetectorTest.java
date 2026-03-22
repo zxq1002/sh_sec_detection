@@ -193,15 +193,15 @@ class ShellDetectorTest {
     void testBuilderWithConflictingRulesShouldWarnButNotFailByDefault() {
         // 默认情况下，规则冲突应该只记录警告而不失败
         Rule whitelistRule = Rule.builder()
-                .id("white-ls")
-                .name("ls whitelist")
-                .pattern("^ls\\b")
+                .id("white-list")
+                .name("list whitelist")
+                .pattern("^list\\b")
                 .whitelist()
                 .build();
         Rule blacklistRule = Rule.builder()
-                .id("black-ls")
-                .name("ls blacklist")
-                .pattern("ls.*")
+                .id("black-list")
+                .name("list blacklist")
+                .pattern("list.*")
                 .blacklist()
                 .riskLevel(RiskLevel.RISK)
                 .build();
@@ -219,15 +219,15 @@ class ShellDetectorTest {
     void testBuilderWithFailOnRuleConflictShouldThrowOnConflict() {
         // 当设置 failOnRuleConflict=true 时，规则冲突应该抛出异常
         Rule whitelistRule = Rule.builder()
-                .id("white-ls")
-                .name("ls whitelist")
-                .pattern("^ls\\b")
+                .id("white-list")
+                .name("list whitelist")
+                .pattern("^list\\b")
                 .whitelist()
                 .build();
         Rule blacklistRule = Rule.builder()
-                .id("black-ls")
-                .name("ls blacklist")
-                .pattern("ls.*")
+                .id("black-list")
+                .name("list blacklist")
+                .pattern("list.*")
                 .blacklist()
                 .riskLevel(RiskLevel.RISK)
                 .build();

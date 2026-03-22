@@ -163,13 +163,16 @@ public class RuleConflictChecker {
     }
 
     /**
-     * 简化模式，移除正则特殊字符
+     * 简化模式，提取关键字，用于冲突检测
      */
     private String simplifyPattern(String pattern) {
-        return pattern.replaceAll("\\\\[wWdDsS]", "")
-                .replaceAll("[.*+?^${}\\[\\]()|\\\\]", " ")
-                .replaceAll("\\s+", " ")
-                .trim();
+        if (pattern == null) return "";
+        // 移除常见的正则转义字符类
+        String s = pattern.replaceAll("\\\\[wWdDsS]", " ");
+        // 将所有非字母数字字符（保留下划线和短横线）替换为空格
+        s = s.replaceAll("[^a-zA-Z0-9_-]", " ");
+        // 合并空格并修剪
+        return s.replaceAll("\\s+", " ").trim();
     }
 
     /**
@@ -181,9 +184,10 @@ public class RuleConflictChecker {
         String[] words2 = s2.split("\\s+");
 
         for (String w1 : words1) {
-            if (w1.length() < 2) continue;
+            // 将最小长度从 2 提升到 3，减少如 'of' 匹配 'poweroff' 的噪音
+            if (w1.length() < 3) continue;
             for (String w2 : words2) {
-                if (w2.length() < 2) continue;
+                if (w2.length() < 3) continue;
                 if (w1.equals(w2) || w1.contains(w2) || w2.contains(w1)) {
                     return true;
                 }

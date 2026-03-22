@@ -39,7 +39,7 @@ class RuleConflictCheckerTest {
         List<Rule> rules = new ArrayList<>();
         rules.add(Rule.builder()
                 .id("test1")
-                .pattern("rm.*")
+                .pattern("remove.*")
                 .blacklist()
                 .build());
 
@@ -51,21 +51,21 @@ class RuleConflictCheckerTest {
     void testWhitelistAndBlacklistOverlapShouldDetectConflict() {
         List<Rule> rules = new ArrayList<>();
         rules.add(Rule.builder()
-                .id("white-ls")
-                .name("ls whitelist")
-                .pattern("^ls\\b")
+                .id("white-list")
+                .name("list whitelist")
+                .pattern("^list\\b")
                 .whitelist()
                 .build());
         rules.add(Rule.builder()
-                .id("black-ls")
-                .name("ls blacklist")
-                .pattern("ls.*")
+                .id("black-list")
+                .name("list blacklist")
+                .pattern("list.*")
                 .blacklist()
                 .riskLevel(RiskLevel.RISK)
                 .build());
 
         List<RuleConflictChecker.Conflict> conflicts = checker.checkConflicts(rules);
-        assertFalse(conflicts.isEmpty());
+        assertFalse(conflicts.isEmpty(), "Should detect overlap for 3+ char words");
         assertEquals(1, conflicts.size());
         assertTrue(conflicts.get(0).getDescription().contains("Whitelist and blacklist"));
     }
@@ -75,12 +75,12 @@ class RuleConflictCheckerTest {
         List<Rule> rules = new ArrayList<>();
         rules.add(Rule.builder()
                 .id("duplicate-id")
-                .pattern("rm.*")
+                .pattern("remove.*")
                 .blacklist()
                 .build());
         rules.add(Rule.builder()
                 .id("duplicate-id")
-                .pattern("ls.*")
+                .pattern("list.*")
                 .whitelist()
                 .build());
 
@@ -94,21 +94,21 @@ class RuleConflictCheckerTest {
         List<Rule> rules = new ArrayList<>();
         rules.add(Rule.builder()
                 .id("black1")
-                .name("rm all")
-                .pattern("rm.*")
+                .name("remove all")
+                .pattern("remove.*")
                 .blacklist()
                 .riskLevel(RiskLevel.RISK)
                 .build());
         rules.add(Rule.builder()
                 .id("black2")
-                .name("rm rf")
-                .pattern("rm\\s+-rf")
+                .name("remove rf")
+                .pattern("remove\\s+-rf")
                 .blacklist()
                 .riskLevel(RiskLevel.DANGER)
                 .build());
 
         List<RuleConflictChecker.Conflict> conflicts = checker.checkConflicts(rules);
-        assertFalse(conflicts.isEmpty());
+        assertFalse(conflicts.isEmpty(), "Should detect overlap for 3+ char words");
         assertTrue(conflicts.get(0).getDescription().contains("Blacklist rules"));
     }
 
@@ -118,18 +118,18 @@ class RuleConflictCheckerTest {
         rules.add(Rule.builder()
                 .id("white1")
                 .name("list commands")
-                .pattern("ls.*")
+                .pattern("list.*")
                 .whitelist()
                 .build());
         rules.add(Rule.builder()
                 .id("white2")
-                .name("ls la")
-                .pattern("ls\\s+-la")
+                .name("list la")
+                .pattern("list\\s+-la")
                 .whitelist()
                 .build());
 
         List<RuleConflictChecker.Conflict> conflicts = checker.checkConflicts(rules);
-        assertFalse(conflicts.isEmpty());
+        assertFalse(conflicts.isEmpty(), "Should detect overlap for 3+ char words");
         assertTrue(conflicts.get(0).getDescription().contains("Whitelist rules"));
     }
 
@@ -137,14 +137,14 @@ class RuleConflictCheckerTest {
     void testDisabledRulesShouldBeIgnored() {
         List<Rule> rules = new ArrayList<>();
         rules.add(Rule.builder()
-                .id("white-ls")
-                .pattern("^ls\\b")
+                .id("white-list")
+                .pattern("^list\\b")
                 .whitelist()
                 .enabled(false)
                 .build());
         rules.add(Rule.builder()
-                .id("black-ls")
-                .pattern("ls.*")
+                .id("black-list")
+                .pattern("list.*")
                 .blacklist()
                 .enabled(false)
                 .build());
@@ -157,13 +157,13 @@ class RuleConflictCheckerTest {
     void testUnrelatedRulesShouldHaveNoConflicts() {
         List<Rule> rules = new ArrayList<>();
         rules.add(Rule.builder()
-                .id("white-ls")
-                .pattern("^ls\\b")
+                .id("white-list")
+                .pattern("^list\\b")
                 .whitelist()
                 .build());
         rules.add(Rule.builder()
-                .id("black-rm")
-                .pattern("rm.*")
+                .id("black-remove")
+                .pattern("remove.*")
                 .blacklist()
                 .riskLevel(RiskLevel.RISK)
                 .build());

@@ -1,13 +1,13 @@
 {
-  "version": "1.0",
+  "version": "1.1",
   "rules": [
     {
-      "id": "builtin-rm-rf-root",
-      "name": "rm -rf root",
+      "id": "builtin-rm-rf",
+      "name": "rm -rf dangerous",
       "type": "BLACKLIST",
-      "pattern": "\\brm\\s+.*-rf.*\\s+/",
+      "pattern": "\\brm\\s+.*-rf",
       "riskLevel": "DANGER",
-      "description": "递归删除根目录",
+      "description": "递归删除指令（含根目录删除风险）",
       "enabled": true
     },
     {
@@ -25,34 +25,25 @@
       "type": "BLACKLIST",
       "pattern": "\\bdd.*of=/dev/",
       "riskLevel": "DANGER",
-      "description": "dd写入设备",
+      "description": "dd 直接写入物理设备",
       "enabled": true
     },
     {
       "id": "builtin-reboot",
-      "name": "reboot",
+      "name": "reboot/shutdown",
       "type": "BLACKLIST",
-      "pattern": "\\breboot\\b|\\bshutdown\\b|\\binit\\s+0\\b|\\binit\\s+6\\b|\\bsystemctl.*poweroff|\\bsystemctl.*reboot|\\bhalt\\b|\\bpoweroff\\b",
+      "pattern": "\\breboot\\b|\\bshutdown\\b|\\binit\\s+[06]\\b|\\bsystemctl\\s+(poweroff|reboot)|\\bhalt\\b|\\bpoweroff\\b",
       "riskLevel": "DANGER",
-      "description": "系统重启/关机",
-      "enabled": true
-    },
-    {
-      "id": "builtin-rm-rf",
-      "name": "rm -rf",
-      "type": "BLACKLIST",
-      "pattern": "\\brm\\s+.*-rf",
-      "riskLevel": "RISK",
-      "description": "递归删除",
+      "description": "系统重启、关机或切换运行级别",
       "enabled": true
     },
     {
       "id": "builtin-cp-mv",
-      "name": "cp/mv",
+      "name": "cp/mv dangerous",
       "type": "BLACKLIST",
       "pattern": "\\bcp\\s+-f|\\bmv\\s+",
       "riskLevel": "RISK",
-      "description": "复制/移动文件",
+      "description": "强制复制或移动文件（可能覆盖关键配置）",
       "enabled": true
     },
     {
@@ -61,7 +52,7 @@
       "type": "BLACKLIST",
       "pattern": "\\btouch\\s+|\\bmkdir\\s+-p",
       "riskLevel": "RISK",
-      "description": "创建文件/目录",
+      "description": "创建文件或递归创建目录",
       "enabled": true
     },
     {
@@ -70,32 +61,23 @@
       "type": "BLACKLIST",
       "pattern": "\\bsed\\s+-i|\\bawk\\s+-i.*inplace|\\bperl\\s+-i",
       "riskLevel": "RISK",
-      "description": "原地修改文件",
+      "description": "利用文本处理工具原地修改系统文件",
       "enabled": true
     },
     {
-      "id": "builtin-chmod",
-      "name": "chmod dangerous",
+      "id": "builtin-chmod-chown",
+      "name": "permission/owner change",
       "type": "BLACKLIST",
-      "pattern": "\\bchmod\\s+777|\\bchmod\\s+-R",
+      "pattern": "\\bchmod\\s+(777|-R)|\\bchown\\s+-R|\\bchgrp\\s+-R",
       "riskLevel": "RISK",
-      "description": "危险权限修改",
-      "enabled": true
-    },
-    {
-      "id": "builtin-chown",
-      "name": "chown/chgrp",
-      "type": "BLACKLIST",
-      "pattern": "\\bchown\\s+-R|\\bchgrp\\s+-R",
-      "riskLevel": "RISK",
-      "description": "递归修改所有者",
+      "description": "递归修改权限或所有者",
       "enabled": true
     },
     {
       "id": "builtin-kill",
-      "name": "kill -9",
+      "name": "force kill",
       "type": "BLACKLIST",
-      "pattern": "\\bkill\\s+-9|\\bpkill\\s+-9|\\bkillall\\s+-9",
+      "pattern": "\\b(kill|pkill|killall)\\s+-9",
       "riskLevel": "RISK",
       "description": "强制终止进程",
       "enabled": true
@@ -104,99 +86,117 @@
       "id": "builtin-file-write",
       "name": "file write redirection",
       "type": "BLACKLIST",
-      "pattern": "\\s*>\\s*[^\\s]|\\s*1>\\s*[^\\s]|\\s*2>\\s*[^\\s]|\\s*>>\\s*[^\\s]",
+      "pattern": "\\s*>{1,2}\\s*[^\\s]",
       "riskLevel": "RISK",
-      "description": "重定向写文件",
+      "description": "重定向写文件（含追加模式）",
       "enabled": true
     },
     {
       "id": "builtin-reverse-shell",
-      "name": "reverse shell detection",
+      "name": "reverse shell",
       "type": "BLACKLIST",
-      "pattern": "/dev/(tcp|udp)/|\\bnc\\s+.*\\d+\\.\\d+\\.\\d+\\.\\d+|\\btelnet\\s+.*\\d+\\.\\d+\\.\\d+\\.\\d+|\\bbash\\s+-i\\s+>&\\s*/dev/tcp/",
+      "pattern": "/dev/(tcp|udp)/|\\bnc\\s+.*\\d+\\.\\d+\\.\\d+\\.\\d+|\\btelnet\\s+.*\\d+\\.\\d+\\.\\d+\\.\\d+|\\bbash\\s+-i",
       "riskLevel": "DANGER",
-      "description": "反弹 Shell 检测（/dev/tcp、nc、telnet等）",
+      "description": "反弹 Shell 特征检测",
       "enabled": true
     },
     {
       "id": "builtin-pipe-dangerous",
-      "name": "dangerous pipe usage",
+      "name": "dangerous pipe flow",
       "type": "BLACKLIST",
-      "pattern": "\\|.*\\b(nc|telnet|bash|sh|zsh|python|perl|ruby)\\b|\\|.*>/dev/(tcp|udp)/",
+      "pattern": "\\|.*\\b(nc|telnet|bash|sh|zsh|python|perl|ruby|base64)\\b",
       "riskLevel": "DANGER",
-      "description": "危险管道操作（管道后接 nc/telnet/shell 等）",
-      "enabled": true
-    },
-    {
-      "id": "builtin-suspicious-delimiter",
-      "name": "suspicious command delimiter",
-      "type": "BLACKLIST",
-      "pattern": "\\|.*\\|.*\\||;.*;.*;|&.*&.*&",
-      "riskLevel": "RISK",
-      "description": "可疑的多重重定向/分隔符",
+      "description": "危险管道流（如管道后接 Shell 或 base64 解码）",
       "enabled": true
     },
     {
       "id": "builtin-ls",
       "name": "ls",
       "type": "WHITELIST",
-      "pattern": "^\\s*ls\\b(?!.*[;|&<>])",
+      "pattern": "^\\s*ls\\b(?!.*[;|&<>$()`])",
       "riskLevel": "SAFE",
-      "description": "查看目录",
+      "description": "安全查看目录",
       "enabled": true
     },
     {
       "id": "builtin-cat",
       "name": "cat",
       "type": "WHITELIST",
-      "pattern": "^\\s*cat\\b(?!.*[;|&<>])",
+      "pattern": "^\\s*cat\\b(?!.*[;|&<>$()`])",
       "riskLevel": "SAFE",
-      "description": "查看文件内容",
+      "description": "安全查看内容",
       "enabled": true
     },
     {
       "id": "builtin-echo",
       "name": "echo/printf",
       "type": "WHITELIST",
-      "pattern": "^\\s*echo\\b(?!.*[;|&<>])|^\\s*printf\\b(?!.*[;|&<>])",
+      "pattern": "^\\s*(echo|printf)\\b(?!.*[;|&<>$()`])",
       "riskLevel": "SAFE",
-      "description": "输出文本",
+      "description": "安全输出文本",
       "enabled": true
     },
     {
       "id": "builtin-info",
-      "name": "info commands",
+      "name": "system info",
       "type": "WHITELIST",
-      "pattern": "^\\s*pwd\\b(?!.*[;|&<>])|^\\s*whoami\\b(?!.*[;|&<>])|^\\s*id\\b(?!.*[;|&<>])|^\\s*date\\b(?!.*[;|&<>])|^\\s*uptime\\b(?!.*[;|&<>])",
+      "pattern": "^\\s*(pwd|whoami|id|date|uptime)\\b(?!.*[;|&<>$()`])",
       "riskLevel": "SAFE",
-      "description": "系统信息查询",
+      "description": "安全查询系统信息",
       "enabled": true
     },
     {
       "id": "builtin-process-view",
       "name": "process view",
       "type": "WHITELIST",
-      "pattern": "^\\s*ps\\b(?!.*[;|&<>])|^\\s*top\\b(?!.*[;|&<>])",
+      "pattern": "^\\s*(ps|top)\\b(?!.*[;|&<>$()`])",
       "riskLevel": "SAFE",
-      "description": "进程查看",
+      "description": "安全查看进程",
       "enabled": true
     },
     {
       "id": "builtin-file-view",
       "name": "file view",
       "type": "WHITELIST",
-      "pattern": "^\\s*head\\b(?!.*[;|&<>])|^\\s*tail\\b(?!.*[;|&<>])|^\\s*less\\b(?!.*[;|&<>])|^\\s*more\\b(?!.*[;|&<>])",
+      "pattern": "^\\s*(head|tail|less|more)\\b(?!.*[;|&<>$()`])",
       "riskLevel": "SAFE",
-      "description": "文件内容查看",
+      "description": "安全分页查看",
       "enabled": true
     },
     {
       "id": "builtin-search",
       "name": "search",
       "type": "WHITELIST",
-      "pattern": "^\\s*grep\\b(?!.*[;|&<>])|^\\s*find\\b(?!.*[;|&<>])",
+      "pattern": "^\\s*(grep|find)\\b(?!.*[;|&<>$()`])",
       "riskLevel": "SAFE",
-      "description": "搜索",
+      "description": "安全搜索指令",
+      "enabled": true
+    },
+    {
+      "id": "builtin-su-sudo",
+      "name": "su/sudo",
+      "type": "BLACKLIST",
+      "pattern": "\\b(su|sudo)\\b",
+      "riskLevel": "RISK",
+      "description": "权限提升指令（潜在越权或提权风险）",
+      "enabled": true
+    },
+    {
+      "id": "builtin-history",
+      "name": "history clearing",
+      "type": "BLACKLIST",
+      "pattern": "\\bhistory\\s+-c|\\brm\\s+.*\\.bash_history",
+      "riskLevel": "RISK",
+      "description": "清理命令历史记录（疑似规避审计行为）",
+      "enabled": true
+    },
+    {
+      "id": "builtin-crontab",
+      "name": "crontab modification",
+      "type": "BLACKLIST",
+      "pattern": "\\bcrontab\\s+(-e|-r|\\b\\w+\\b)",
+      "riskLevel": "RISK",
+      "description": "修改计划任务（疑似持久化提权行为）",
       "enabled": true
     }
   ]
