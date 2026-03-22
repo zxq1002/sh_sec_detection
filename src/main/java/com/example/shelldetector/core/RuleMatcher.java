@@ -22,7 +22,12 @@ public class RuleMatcher {
      * 危险分隔符 - 用于白名单兜底防护检查
      * 如果命令包含这些字符，即使匹配了白名单也要谨慎处理
      */
-    private static final String DANGEROUS_DELIMITERS = ";|&<>";
+    private static final String DANGEROUS_DELIMITERS = ";|&<>$()`";
+
+    /**
+     * 特别危险的子 Shell 字符 - 这些字符在任何情况下都需要谨慎处理
+     */
+    private static final String SUBSHELL_CHARS = "$()`";
 
     /**
      * 匹配白名单规则
@@ -82,7 +87,13 @@ public class RuleMatcher {
         for (Rule rule : rules) {
             if (rule != null && rule.getType() == RuleType.WHITELIST && rule.matches(entireCommand)) {
                 // 【安全兜底】检查是否包含危险分隔符，除非规则本身就允许
-                if (containsDangerousDelimiters(entireCommand) && !rulePatternContainsDangerousChars(rule)) {
+                // 对于子 Shell 字符，永远拒绝，除非规则明确允许（字面量包含）
+                if (containsSubshellChars(entireCommand) && !rulePatternLiteralContainsSubshellChars(rule)) {
+                    logger.warn("白名单规则匹配但包含子 Shell 字符，拒绝放行: {}", entireCommand);
+                    return false;
+                }
+                // 检查其他危险分隔符
+                if (containsOtherDangerousDelimiters(entireCommand) && !rulePatternContainsOtherDangerousChars(rule)) {
                     logger.warn("白名单规则匹配但包含危险分隔符，拒绝放行: {}", entireCommand);
                     return false;
                 }
@@ -116,9 +127,13 @@ public class RuleMatcher {
                 return false;
             }
             // 【安全兜底】子命令也检查危险分隔符，除非规则本身就允许
-            boolean hasDangerous = containsDangerousDelimiters(cmd);
-            boolean ruleAllows = matched.stream().anyMatch(this::rulePatternContainsDangerousChars);
-            if (hasDangerous && !ruleAllows) {
+            // 先检查子 Shell 字符
+            if (containsSubshellChars(cmd) && !matched.stream().anyMatch(this::rulePatternLiteralContainsSubshellChars)) {
+                logger.warn("子命令匹配白名单但包含子 Shell 字符，拒绝放行: {}", cmd);
+                return false;
+            }
+            // 再检查其他危险分隔符
+            if (containsOtherDangerousDelimiters(cmd) && !matched.stream().anyMatch(this::rulePatternContainsOtherDangerousChars)) {
                 logger.warn("子命令匹配白名单但包含危险分隔符，拒绝放行: {}", cmd);
                 return false;
             }
@@ -127,47 +142,71 @@ public class RuleMatcher {
     }
 
     /**
-     * 检查规则的 pattern 是否本身就包含危险字符
-     * 如果是，表示规则明确允许这些字符
+     * 检查规则的 pattern 是否字面量包含子 Shell 字符（$ ` ( )）
+     * 注意：不包括正则表达式中的分组括号，只检查字面量的子 Shell 字符
      *
      * @param rule 规则
-     * @return true 表示规则 pattern 包含危险字符
+     * @return true 表示规则 pattern 字面量包含子 Shell 字符
      */
-    private boolean rulePatternContainsDangerousChars(Rule rule) {
+    private boolean rulePatternLiteralContainsSubshellChars(Rule rule) {
         String pattern = rule.getPattern();
         if (pattern == null) {
             return false;
         }
-        // 检查规则 pattern 是否包含危险字符的字面量或正则
+        // 只检查字面量的 $ 和 `，因为 ( 和 ) 在正则中很常见
+        // 如果规则确实要允许子 Shell，应该在 pattern 中明确包含 $ 或 `
+        return pattern.contains("$") || pattern.contains("`");
+    }
+
+    /**
+     * 检查规则的 pattern 是否包含其他危险字符（; | & < >）
+     *
+     * @param rule 规则
+     * @return true 表示规则 pattern 包含危险字符
+     */
+    private boolean rulePatternContainsOtherDangerousChars(Rule rule) {
+        String pattern = rule.getPattern();
+        if (pattern == null) {
+            return false;
+        }
         return pattern.contains("|") || pattern.contains(";") || pattern.contains("&")
                 || pattern.contains(">") || pattern.contains("<");
     }
 
     /**
-     * 检查命令是否包含危险分隔符
-     * <p>
-     * 危险分隔符包括：; | & < >
-     * </p>
+     * 检查命令是否包含未转义的子 Shell 字符
+     *
+     * @param command 命令字符串
+     * @return true 表示包含子 Shell 字符
+     */
+    private boolean containsSubshellChars(String command) {
+        if (command == null) {
+            return false;
+        }
+        return containsUnquotedChars(command, SUBSHELL_CHARS);
+    }
+
+    /**
+     * 检查命令是否包含未转义的其他危险分隔符
      *
      * @param command 命令字符串
      * @return true 表示包含危险分隔符
      */
-    private boolean containsDangerousDelimiters(String command) {
+    private boolean containsOtherDangerousDelimiters(String command) {
         if (command == null) {
             return false;
         }
-        // 检查是否包含未转义、未引号包裹的危险分隔符
-        // 简单但有效的检查：如果包含这些字符，且不是在引号内
-        return containsUnquotedDangerousChars(command);
+        return containsUnquotedChars(command, ";|&<>");
     }
 
     /**
-     * 检查是否包含未被引号包裹的危险字符
+     * 检查是否包含未被引号包裹的指定字符
      *
      * @param command 命令字符串
-     * @return true 表示包含未被引号包裹的危险字符
+     * @param charsToCheck 要检查的字符集合
+     * @return true 表示包含未被引号包裹的指定字符
      */
-    private boolean containsUnquotedDangerousChars(String command) {
+    private boolean containsUnquotedChars(String command, String charsToCheck) {
         boolean inSingleQuote = false;
         boolean inDoubleQuote = false;
         boolean escapeNext = false;
@@ -195,8 +234,8 @@ public class RuleMatcher {
                 continue;
             }
 
-            // 在引号外且发现危险字符
-            if (!inSingleQuote && !inDoubleQuote && DANGEROUS_DELIMITERS.indexOf(c) >= 0) {
+            // 在引号外且发现目标字符
+            if (!inSingleQuote && !inDoubleQuote && charsToCheck.indexOf(c) >= 0) {
                 return true;
             }
         }

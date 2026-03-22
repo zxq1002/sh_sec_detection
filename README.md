@@ -10,11 +10,15 @@ Linux Shell 高危指令检测 Java 类库，供其他系统集成使用。
 - Fluent Builder API
 - JSON 规则持久化
 - 管道命令和重定向操作智能检测
+- **可选 ANTLR 解析器** - 支持 SIMPLE（默认）和 ANTLR 两种解析器
 
 ## 快速开始
 
 ```java
-// 使用默认配置和内置规则
+import com.example.shelldetector.ShellDetector;
+import com.example.shelldetector.model.DetectionResult;
+
+// 使用默认配置和内置规则（默认 SIMPLE 解析器）
 ShellDetector detector = ShellDetector.createDefault();
 DetectionResult result = detector.detect("rm -rf /");
 
@@ -30,6 +34,44 @@ ShellDetector detector = ShellDetector.builder()
     .withDefaultRules()
     .withThreshold(RiskLevel.DANGER)  // 只拦截高危
     .withRulesFromJson("my-rules.json")
+    .build();
+```
+
+### 配置解析器类型
+
+项目支持两种解析器，可按需选择：
+
+| 解析器 | 说明 | 优势 | 劣势 | 适用场景 |
+|--------|------|------|------|----------|
+| `SIMPLE` (默认) | 手写的简单解析器 | 轻量、快速、无额外依赖、代码简单易维护 | 语法覆盖有限、复杂脚本可能误报 | 大多数场景、追求性能、简单命令检测 |
+| `ANTLR` | 基于 ANTLR 的语法解析器 | 语法覆盖完整、解析准确、可扩展 | 依赖 ANTLR runtime、稍重、启动稍慢 | 需要准确解析、复杂脚本处理、降低误报 |
+
+#### 详细对比
+
+| 维度 | SIMPLE | ANTLR |
+|------|--------|-------|
+| **Jar 大小** | 更小 | 增加 ~300KB (antlr4-runtime) |
+| **启动速度** | 更快 | 稍慢 (需初始化 lexer/parser) |
+| **内存占用** | 更低 | 更高 (AST 对象树) |
+| **代码复杂度** | ~100 行，易理解 | 生成的代码数千行 |
+| **可维护性** | 高，问题易定位 | 中，需理解 ANTLR 工作原理 |
+| **语法覆盖** | 基础分隔符、引号、转义 | 完整 Bash 语法 (当前为简化版) |
+| **子 Shell 解析** | ❌ 不支持 | ✅ 可支持 |
+| **误报率** | 较高 (如 `ls my-rm-rf`) | 较低 (可精准提取命令名) |
+
+```java
+import com.example.shelldetector.parser.ParserType;
+
+// 使用 SIMPLE 解析器（默认）
+ShellDetector detector = ShellDetector.builder()
+    .withDefaultRules()
+    .withParserType(ParserType.SIMPLE)
+    .build();
+
+// 使用 ANTLR 解析器
+ShellDetector detector = ShellDetector.builder()
+    .withDefaultRules()
+    .withParserType(ParserType.ANTLR)
     .build();
 ```
 

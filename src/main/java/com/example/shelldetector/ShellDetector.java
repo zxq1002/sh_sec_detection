@@ -7,6 +7,7 @@ import com.example.shelldetector.core.RuleConflictChecker;
 import com.example.shelldetector.model.DetectionResult;
 import com.example.shelldetector.model.RiskLevel;
 import com.example.shelldetector.model.Rule;
+import com.example.shelldetector.parser.ParserType;
 import com.example.shelldetector.persistence.RuleLoader;
 import com.example.shelldetector.persistence.RuleSaver;
 import org.slf4j.Logger;
@@ -216,6 +217,27 @@ public class ShellDetector {
             this.config = DetectionConfig.builder()
                     .threshold(threshold)
                     .failOnParseError(this.config.isFailOnParseError())
+                    .parserType(this.config.getParserType())
+                    .build();
+            return this;
+        }
+
+        /**
+         * 设置解析器类型
+         *
+         * @param parserType 解析器类型
+         * @return Builder 实例
+         * @throws IllegalArgumentException 如果 parserType 为 null
+         */
+        public Builder withParserType(ParserType parserType) {
+            if (parserType == null) {
+                throw new IllegalArgumentException("ParserType cannot be null");
+            }
+            // 保持现有配置，只修改 parserType 属性
+            this.config = DetectionConfig.builder()
+                    .threshold(this.config.getThreshold())
+                    .failOnParseError(this.config.isFailOnParseError())
+                    .parserType(parserType)
                     .build();
             return this;
         }

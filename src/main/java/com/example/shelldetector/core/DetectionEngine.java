@@ -5,7 +5,8 @@ import com.example.shelldetector.exception.ShellParseException;
 import com.example.shelldetector.model.DetectionResult;
 import com.example.shelldetector.model.RiskLevel;
 import com.example.shelldetector.model.Rule;
-import com.example.shelldetector.parser.ShellCommandExtractor;
+import com.example.shelldetector.parser.ShellParser;
+import com.example.shelldetector.parser.ShellParserFactory;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -17,7 +18,7 @@ import java.util.Set;
  * <p>
  * 检测流程：
  * <ol>
- *     <li>命令提取 - 按 [;|&] 分割命令字符串</li>
+ *     <li>命令提取 - 使用配置的解析器提取子命令</li>
  *     <li>整条命令白名单检查 - 完全根据白名单规则校验</li>
  *     <li>所有子命令白名单检查 - 检查每个子命令是否都在白名单中</li>
  *     <li>黑名单检测 - 先对原始整串检测，再逐个检测子命令（捕获分隔符）</li>
@@ -29,7 +30,7 @@ public class DetectionEngine {
     private final DetectionConfig config;
     private final RuleMatcher ruleMatcher;
     private final RiskEvaluator riskEvaluator;
-    private final ShellCommandExtractor commandExtractor;
+    private final ShellParser parser;
 
     /**
      * 构造检测引擎
@@ -40,7 +41,7 @@ public class DetectionEngine {
         this.config = config;
         this.ruleMatcher = new RuleMatcher();
         this.riskEvaluator = new RiskEvaluator();
-        this.commandExtractor = new ShellCommandExtractor();
+        this.parser = ShellParserFactory.createParser(config.getParserType());
     }
 
     /**
@@ -68,7 +69,7 @@ public class DetectionEngine {
 
         try {
             // 步骤1：提取子命令
-            List<String> commands = commandExtractor.extractCommands(entireCommand);
+            List<String> commands = parser.extractCommands(entireCommand);
 
             // 没有提取到命令，直接通过
             if (commands.isEmpty()) {

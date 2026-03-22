@@ -1,13 +1,14 @@
 package com.example.shelldetector.config;
 
 import com.example.shelldetector.model.RiskLevel;
+import com.example.shelldetector.parser.ParserType;
 
 import java.io.Serializable;
 
 /**
  * 检测配置 - 配置检测引擎的行为
  * <p>
- * 可配置项：风险阈值、解析失败时的处理策略。
+ * 可配置项：风险阈值、解析失败时的处理策略、解析器类型。
  * </p>
  */
 public class DetectionConfig implements Serializable {
@@ -15,6 +16,8 @@ public class DetectionConfig implements Serializable {
     private RiskLevel threshold = RiskLevel.RISK;
     /** 解析失败时是否抛出异常，默认为 true */
     private boolean failOnParseError = true;
+    /** 解析器类型，默认为 SIMPLE */
+    private ParserType parserType = ParserType.SIMPLE;
 
     /**
      * 默认构造函数，使用默认配置
@@ -66,6 +69,28 @@ public class DetectionConfig implements Serializable {
     }
 
     /**
+     * 获取解析器类型
+     *
+     * @return 当前配置的解析器类型
+     */
+    public ParserType getParserType() {
+        return parserType;
+    }
+
+    /**
+     * 设置解析器类型
+     *
+     * @param parserType 解析器类型
+     * @throws IllegalArgumentException 如果 parserType 为 null
+     */
+    public void setParserType(ParserType parserType) {
+        if (parserType == null) {
+            throw new IllegalArgumentException("ParserType cannot be null");
+        }
+        this.parserType = parserType;
+    }
+
+    /**
      * 创建 Builder 对象
      *
      * @return Builder 实例
@@ -103,6 +128,21 @@ public class DetectionConfig implements Serializable {
          */
         public Builder failOnParseError(boolean failOnParseError) {
             config.failOnParseError = failOnParseError;
+            return this;
+        }
+
+        /**
+         * 设置解析器类型
+         *
+         * @param parserType 解析器类型
+         * @return Builder 实例
+         * @throws IllegalArgumentException 如果 parserType 为 null
+         */
+        public Builder parserType(ParserType parserType) {
+            if (parserType == null) {
+                throw new IllegalArgumentException("ParserType cannot be null");
+            }
+            config.parserType = parserType;
             return this;
         }
 
