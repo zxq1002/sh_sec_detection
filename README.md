@@ -47,6 +47,8 @@ ShellDetector detector = ShellDetector.builder()
 | **子 Shell 解析** | ❌ 仅作为字符串匹配 | ✅ 递归剥离 `$()` 并独立扫描内容 |
 | **故障处理** | 状态机容错 | **Fail-Safe** (语法错误即拦截) |
 
+> 💡 **详细对比**: 关于两种解析器的安全性、漏报风险及误报控制的深度分析，请参阅 [解析器安全性深度对比分析报告](docs/parser_security_analysis.md)。
+
 也可以直接构建 `DetectionConfig` 进行细粒度配置：
 
 ```java
